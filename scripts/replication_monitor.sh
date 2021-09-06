@@ -25,7 +25,6 @@ function enable_mail () {
     /bin/systemctl enable sendmail
     /bin/systemctl start sendmail
     /bin/yum install mailx -y
-}
 
 if [ $1 != "check" ]
     then
