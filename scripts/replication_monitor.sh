@@ -1,0 +1,41 @@
+#!/bin/bash
+
+email=monitor@layershift.com
+password=`</dev/urandom tr -dc '123456789!@#$%qwe^CE' | head -c8`
+user=check_monit
+default_user=$1
+root_password=$2
+sender=mysql-replication@layershift.com
+
+
+###Create user
+function create_user () {
+    echo "CREATE USER '$user'@'localhost' IDENTIFIED BY '$password';" | mysql -u$1 -p$root_password
+    echo "GRANT SUPER , REPLICATION CLIENT ON * . * TO '$user'@'localhost' IDENTIFIED BY '$password' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0;"| mysql -uroot -p$root_password
+}
+###Check replication
+function check_replication () {
+    (echo "show slave status \G;") | mysql -u$user -p$password 2>&1 | grep "Slave_IO_Running: No"
+    if [ "$?" -e "0" ]; then
+        echo "Mysql replication broken on $hostname. Please check, and restart it" | /bin/mail  -s "Mysql replication broken on $hostname" iulian.e@layershift.me
+    fi
+}
+
+###Enable sendmail and mailx
+function enable_mail () {
+    /bin/systemctl enable sendmail
+    /bin/systemctl start sendmail
+    /bin/yum install mailx -y
+}
+
+}
+
+if [ $1 -ne "check" ]
+    then
+        create_user
+        enable_mail
+elif [ $1 -e "check" ]
+    then
+        check_replication
+fi
+

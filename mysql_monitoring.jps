@@ -1,0 +1,54 @@
+_info : 'https://docs.cloudscripting.com/1.6.2/'
+version: 1.6.2
+build: 20200122
+type: update
+name: 'Mysql_replication_monitoring'
+id: 'Replication_monitoring'
+homepage: https://github.com/layershift/mysql_replication_monitor
+baseUrl: https://github.com/layershift/mysql_replication_monitor
+logo: /images/mysql-sync.png?_r=${fn.random}
+
+targetNodes: 
+  nodeGroup: 'sqldb'
+categories:
+ - apps/others
+
+description:
+  short: Mysql replication monitoring and alert
+
+settings:
+    fields:
+        - type: string
+          caption: Root Password
+          name: passwd
+          default: HXdwupxq5FQP9z716vq4
+        - type: string
+          caption: User
+          name: user
+          default: jelastic-1746414
+        - type: string
+          caption: Email address
+          name: email
+          default: ${user.email}
+        - type: string
+          caption: Additional email address
+          name: email2
+          
+onInstall:
+    install_script :
+    create_cron :
+
+actions:
+    install_script :
+    #This creates a copy of the monitoring script, and adds the "check_monit" mysql user
+        cmd[sqldb]:      
+            - /bin/curl -fsSL '${baseUrl}/scripts/replication_monitor.sh' -o /root/replication_monitor.sh;
+            - chmod +x /root/replication_monitor.sh;
+            - /root/replication_monitor.sh root ${settings.passwd}
+        user: root
+    
+    create_cron :
+        cmd[sqldb]:
+            - /bin/touch /etc/cron.d/replication_check
+            - /bin/echo "*/5 * * * * root /root/replication_monitor.sh check" > /etc/cron.d/replication_check 
+        user: root
