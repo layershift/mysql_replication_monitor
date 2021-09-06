@@ -3,7 +3,6 @@
 email=monitor@layershift.com
 password=`</dev/urandom tr -dc '123456789!@#$%qwe^CE' | head -c8`
 user=check_monit
-default_user=$1
 root_password=$2
 sender=mysql-replication@layershift.com
 
@@ -16,7 +15,7 @@ function create_user () {
 ###Check replication
 function check_replication () {
     (echo "show slave status \G;") | mysql -u$user -p$password 2>&1 | grep "Slave_IO_Running: No"
-    if [ "$?" -e "0" ]; then
+    if [ "$?" = "0" ]; then
         echo "Mysql replication broken on $hostname. Please check, and restart it" | /bin/mail  -s "Mysql replication broken on $hostname" iulian.e@layershift.me
     fi
 }
@@ -28,13 +27,11 @@ function enable_mail () {
     /bin/yum install mailx -y
 }
 
-}
-
-if [ $1 -ne "check" ]
+if [ $1 != "check" ]
     then
         create_user
         enable_mail
-elif [ $1 -e "check" ]
+elif [ $1 = "check" ]
     then
         check_replication
 fi

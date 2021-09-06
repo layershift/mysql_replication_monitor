@@ -5,7 +5,7 @@ type: update
 name: 'Mysql_replication_monitoring'
 id: 'Replication_monitoring'
 homepage: https://github.com/layershift/mysql_replication_monitor
-baseUrl: https://github.com/layershift/mysql_replication_monitor
+baseUrl: https://raw.githubusercontent.com/layershift/mysql_replication_monitor/main
 logo: /images/mysql-sync.png?_r=${fn.random}
 
 targetNodes: 
@@ -21,11 +21,9 @@ settings:
         - type: string
           caption: Root Password
           name: passwd
-          default: HXdwupxq5FQP9z716vq4
         - type: string
           caption: User
           name: user
-          default: jelastic-1746414
         - type: string
           caption: Email address
           name: email
