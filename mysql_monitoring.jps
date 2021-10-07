@@ -28,9 +28,7 @@ settings:
           caption: Email address
           name: email
           default: ${user.email}
-        - type: string
-          caption: Additional email address
-          name: email2
+
           
 onInstall:
     install_script :
@@ -42,7 +40,7 @@ actions:
         cmd[sqldb]:      
             - /bin/curl -fsSL '${baseUrl}/scripts/replication_monitor.sh' -o /root/replication_monitor.sh;
             - chmod +x /root/replication_monitor.sh;
-            - /root/replication_monitor.sh root ${settings.passwd}
+            - /root/replication_monitor.sh ${settings.user} ${settings.passwd}
         user: root
     
     create_cron :
