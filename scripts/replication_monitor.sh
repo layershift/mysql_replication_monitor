@@ -14,8 +14,8 @@ function create_user () {
 }
 ###Check replication
 function check_replication () {
-    (echo "show slave status \G;") | mysql -u$user -p$password 2>&1 | grep "Slave_IO_Running: No"
-    if [ "$?" = "0" ]; then
+    (echo "show slave status \G;") | mysql -u$user -p$password 2>&1 | grep "Slave_IO_Running: Yes"
+    if [ "$?" != "0" ]; then
         echo "Mysql replication broken on $hostname. Please check, and restart it" | /bin/mail  -s "Mysql replication broken on $hostname" $email
     fi
 }
