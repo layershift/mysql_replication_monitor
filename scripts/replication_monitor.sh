@@ -6,10 +6,11 @@ user=check_monit
 root_password=$2
 sender=mysql-replication@layershift.com
 confirmation=/var/lib/replication.txt
+default_user=$1
 
 ###Create user
 function create_user () {
-    echo "CREATE USER '$user'@'localhost' IDENTIFIED BY '$password';" | mysql -u$1 -p$root_password
+    echo "CREATE USER '$user'@'localhost' IDENTIFIED BY '$password';" | mysql -u$default_user -p$root_password
     echo "GRANT SUPER , REPLICATION CLIENT ON * . * TO '$user'@'localhost' IDENTIFIED BY '$password' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0;"| mysql -uroot -p$root_password
 }
 ###Check replication
@@ -26,6 +27,7 @@ function check_replication () {
                     exit 0  
                 else
                     touch $confirmation ; echo "The replication was found working on `date`"
+            fi
     fi
 }
 
