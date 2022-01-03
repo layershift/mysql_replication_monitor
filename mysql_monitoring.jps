@@ -40,11 +40,11 @@ actions:
         cmd[sqldb]:      
             - /bin/curl -fsSL '${baseUrl}/scripts/replication_monitor.sh' -o /root/replication_monitor.sh;
             - chmod +x /root/replication_monitor.sh;
-            - /root/replication_monitor.sh ${settings.user} ${settings.passwd}
+            - /root/replication_monitor.sh --create ${settings.user} ${settings.passwd}
         user: root
     
     create_cron :
         cmd[sqldb]:
             - /bin/touch /etc/cron.d/replication_check
-            - /bin/echo "*/5 * * * * root /root/replication_monitor.sh check" > /etc/cron.d/replication_check 
+            - /bin/echo "*/5 * * * * root /root/replication_monitor.sh --check" > /etc/cron.d/replication_check 
         user: root
