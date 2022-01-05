@@ -47,6 +47,11 @@ actions:
             - chmod +x /root/replication_monitor.sh;
             - /root/replication_monitor.sh --create ${settings.user} ${settings.passwd}
         user: root
+        
+    remove_cron :
+        cmd[sqldb]:
+           - /usr/bin/rm -f /etc/cron.d/replication_check
+        user: root
 
     create_cron :
         cmd[sqldb]:
@@ -54,11 +59,6 @@ actions:
             - /bin/echo "*/5 * * * * root /root/replication_monitor.sh --check" > /etc/cron.d/replication_check 
         user: root
         
-    remove_cron :
-        cmd[sqldb]:
-           - /usr/bin/rm -f /etc/cron.d/replication_check
-        user: root
-    
     remove_script :
     	cmd[sqldb]:
     	    - /usr/bin/rm -f /root/replication_monitor.sh
