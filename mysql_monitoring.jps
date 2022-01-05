@@ -54,7 +54,7 @@ actions:
             - /bin/echo "*/5 * * * * root /root/replication_monitor.sh --check" > /etc/cron.d/replication_check 
         user: root
         
-    remove_cronjob :
+    remove_cron :
         cmd[sqldb]:
            - /usr/bin/rm -f /etc/cron.d/replication_check
         user: root
