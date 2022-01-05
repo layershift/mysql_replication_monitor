@@ -66,5 +66,5 @@ actions:
         
     remove_mysql_rep_user :
         cmd[sqldb]:
-            - /user/bin/mysql -uroot -p${settings.passwd} -e "DROP USER 'check_monit'@'localhost';
+            - /user/bin/mysql -uroot -p${settings.passwd} -e "DROP USER 'check_monit'@'localhost';"
         user: root
