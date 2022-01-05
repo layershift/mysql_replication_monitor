@@ -35,8 +35,8 @@ onInstall:
     create_cron :
 
 onUninstall:
-    remove_cronjob :
     remove_script :
+    remove_cron :
     remove_mysql_rep_user :
 
 actions:
