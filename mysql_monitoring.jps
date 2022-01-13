@@ -50,7 +50,7 @@ actions:
     create_cron :
         cmd[sqldb]:
             - /bin/touch /etc/cron.d/replication_check
-            - /bin/echo "*/5 * * * * root /root/replication_monitor.sh --check" > /etc/cron.d/replication_check
+            - /bin/echo "*/5 * * * * root /opt/ls_tools/replication_monitor.sh --check" > /etc/cron.d/replication_check
         user: root
         
     remove_script :
