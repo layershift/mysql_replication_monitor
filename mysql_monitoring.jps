@@ -36,8 +36,7 @@ onInstall:
 onUninstall:
     remove_script :
     remove_cron :
-    remove_mysql_rep_user :
-
+    
 actions:
     install_script :
     #This creates a copy of the monitoring script, and adds the "check_monit" mysql user
@@ -47,12 +46,7 @@ actions:
             - chmod +x /root/replication_monitor.sh;
             - /root/replication_monitor.sh --create ${settings.user} ${settings.passwd}
         user: root
-        
-    remove_cron :
-        cmd[sqldb]:
-           - /usr/bin/rm -f /etc/cron.d/replication_check
-        user: root
-
+  
     create_cron :
         cmd[sqldb]:
             - /bin/touch /etc/cron.d/replication_check
@@ -61,11 +55,12 @@ actions:
         
     remove_script :
     	  cmd[sqldb]:
-    	    - /opt/ls_tools/replication_monitor.sh --uninstall
+    	    - /opt/ls_tools/replication_monitor.sh --uninstall ${settings.user} ${settings.passwd}
     	    - /usr/bin/rm -f /opt/ls_tools/replication_monitor.sh
+        user: root        
+        
+    remove_cron :
+        cmd[sqldb]:
+           - /usr/bin/rm -f /etc/cron.d/replication_check
         user: root
         
-    remove_mysql_rep_user :
-        cmd[sqldb]:
-            - /usr/bin/mysql -u${settings.user} -p${settings.passwd} -e "DROP USER 'check_monit'@'localhost';"
-        user: root
