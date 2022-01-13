@@ -1,4 +1,3 @@
-_info : 'https://docs.cloudscripting.com/1.6.2/'
 version: 1.6.2
 build: 20200122
 type: update
@@ -61,10 +60,10 @@ actions:
         
     remove_script :
     	  cmd[sqldb]:
-    	    - /usr/bin/rm -f /root/replication_monitor.sh
+    	    - /root/replication_monitor.sh --uninstall
         user: root
         
     remove_mysql_rep_user :
         cmd[sqldb]:
-            - /usr/bin/mysql -uroot -p${settings.passwd} -e "DROP USER 'check_monit'@'localhost';"
+            - /usr/bin/mysql -u${settings.user} -p${settings.passwd} -e "DROP USER 'check_monit'@'localhost';"
         user: root
