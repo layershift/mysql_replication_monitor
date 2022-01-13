@@ -58,5 +58,14 @@ function disable_check () {
 fi
 
 }
+
+
+###Uninstall
+function uninstall () {
+    /usr/bin/mysql -u$default_user -p$default_password -e "DROP USER 'check_monit'@'localhost';"
+    /usr/bin/rm -f $credentials
+}
+
 if [ "$1" == "--create" ]; then  create_user; enable_mail; fi
 if [ "$1" == "--check" ]; then check_replication; fi
+if [ "$1" == "--uninstall" ]; then uninstall; fi
