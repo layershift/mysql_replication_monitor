@@ -42,6 +42,7 @@ actions:
     install_script :
     #This creates a copy of the monitoring script, and adds the "check_monit" mysql user
         cmd[sqldb]:      
+            - /bin/mkdir /opt/ 
             - /bin/curl -fsSL '${baseUrl}/scripts/replication_monitor.sh' -o /root/replication_monitor.sh;
             - chmod +x /root/replication_monitor.sh;
             - /root/replication_monitor.sh --create ${settings.user} ${settings.passwd}
@@ -55,7 +56,7 @@ actions:
     create_cron :
         cmd[sqldb]:
             - /bin/touch /etc/cron.d/replication_check
-            - /bin/echo "*/5 * * * * root /root/replication_monitor.sh --check" > /etc/cron.d/replication_check 
+            - /bin/echo "*/5 * * * * root /root/replication_monitor.sh --check" > /etc/cron.d/replication_check
         user: root
         
     remove_script :
