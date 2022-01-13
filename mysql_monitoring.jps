@@ -61,7 +61,7 @@ actions:
     remove_script :
     	  cmd[sqldb]:
     	    - /opt/ls_tools/replication_monitor.sh --uninstall
-          - /usr/bin/rm -f /opt/ls_tools/replication_monitor.sh
+           - /usr/bin/rm -f /opt/ls_tools/replication_monitor.sh
         user: root
         
     remove_mysql_rep_user :
