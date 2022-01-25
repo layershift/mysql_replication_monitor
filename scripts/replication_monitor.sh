@@ -88,7 +88,7 @@ function uninstall () {
 
 }
 
-if [ "$1" == "--create" ]; then  create_user; enable_mail; fi
+if [ "$1" == "--create" ]; then  create_user; enable_mail; add_data; fi
 if [ "$1" == "--disable" ]; then check_disable ; fi
 if [ "$1" == "--check" ]; then check_disable; check mysql; check_replication; fi
 if [ "$1" == "--uninstall" ]; then uninstall; fi
