@@ -18,7 +18,7 @@ if [ "$1" = "--help" ] ; then
     echo "and replace mysql_user and mysql_password with the correct values"
     echo ""
     echo "After the user was created, in order to run the checks, execute the script with the --check option"
-    echo "If you want to disable the check for a period, you can use --check --time=n (where n is any time in hours you want it disabled)"
+    echo "If you want to disable the check for a period, you can use --disable --time=n (where n is any time in hours you want it disabled)"
 fi
 if [ ! -d $tools ]; then mkdir $tools; fi
 
@@ -27,8 +27,8 @@ if [ ! -f $credentials ] ; then touch $credentials; fi
 ###Populate config file
 function add_data () {
     if [ ! -f $config_file ] ; then touch $config_file; fi
-    echo "mysql_status= " > $config_file
-    echo "disabled_status= " > $config_file
+    echo -e "mysql_status= " > $config_file
+    echo -e "disabled_status= " > $config_file
 }
 ###Create user
 function create_user () {
@@ -57,7 +57,7 @@ function check_disable () {
     if [ "$disable_time" -eq "0" ]; then echo "$time" > $disable_check_file ; fi
     disable_time=`cat $disable_check_file`
     echo -e "file age is $file_age and the settings are $disable_time"
-    if [ "$disable_time" -gt "$file_age" ]; then sed -i 's/disabled_status=/disabled_status= true/g' $config_file ; else sed -i 's/disabled_status=/disabled_status= false/g' $config_file && echo "0" > $disable_check_file  ; fi
+    if [ "$disable_time" -gt "$file_age" ]; then sed -i 's/disabled_status=.*/disabled_status= true/g' $config_file ; else sed -i 's/disabled_status=.*/disabled_status= false/g' $config_file && echo "0" > $disable_check_file  ; fi
 }
 
 ###Check if mysql connection works with monitoring user
@@ -88,7 +88,7 @@ function uninstall () {
 
 }
 
-if [ "$1" == "--create" ]; then  create_user; enable_mail; add_data; fi
+if [ "$1" == "--create" ]; then  create_user; enable_mail; fi
 if [ "$1" == "--disable" ]; then check_disable ; fi
-if [ "$1" == "--check" ]; then check_disable; check mysql; check_replication; fi
+if [ "$1" == "--check" ]; then check_disable; check_mysql; check_replication; fi
 if [ "$1" == "--uninstall" ]; then uninstall; fi
