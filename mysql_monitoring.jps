@@ -18,16 +18,11 @@ description:
 settings:
     fields:
         - type: string
-          caption: Root Password
-          name: passwd
-        - type: string
-          caption: User
+          caption: Root User
           name: user
         - type: string
-          caption: Email address
-          name: email
-          default: ${user.email}
-
+          caption: Root Password
+          name: passwd
           
 onInstall:
     install_script :
