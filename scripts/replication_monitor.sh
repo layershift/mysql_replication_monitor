@@ -11,7 +11,7 @@ server=$(hostname)
 time=$2
 config_file=/opt/ls_tools/mysql_monitor.config
 
-if [ "$1" = "--help" ] ; then
+if [ "$1" == "--help" ] ; then
     echo "This is the help section of the script:"
     echo "For the first run, you need to create the sql user. To do so execute :"
     echo "sh /opt/ls_tools/replication_monitor.sh --create mysql_user mysql_password"
