@@ -32,6 +32,10 @@ settings:
       required: true
       default:
       tooltip: Multiple email addresses can be specified separated by ,
+    - type: string
+      name: appPassword
+      inputType: hidden
+      value: 
 
 onBeforeInit: |
   return {
@@ -59,6 +63,11 @@ onBeforeInit: |
         "required": true,
         "default": "${user.email}",
         "tooltip": "Multiple email addresses can be specified separated by ,"
+      }, {
+        "type": "string",
+        "name": "appPassword",
+        "inputType": hidden,
+        "default": com.hivext.api.utils.Random.getPswd(10)
       }]
     }
   };
@@ -90,7 +99,7 @@ actions:
     
     configure_script:
       cmd[sqldb]:
-        - /opt/ls_tools/replication_monitor.sh --create '${settings.user}' '${settings.passwd}' '${settings.alertRecipient}'
+        - /opt/ls_tools/replication_monitor.sh --create '${settings.user}' '${settings.passwd}' '${settings.alertRecipient}' '${settings.appPassword}'
       user: root
   
     create_cron :
