@@ -3,7 +3,7 @@ server=$(hostname)
 sender=mysql-replication@${server}
 tools=/opt/ls_tools
 credentials=${tools}/.sqlpwd
-config_file==${tools}/mysql_monitor.config
+config_file=${tools}/mysql_monitor.config
 status_file=/run/$(basename $0)
 debug=0
 
@@ -146,11 +146,12 @@ EOF
             shift
             setup_email=${1:-root@localhost}
             shift
-            if [[ ${setup_user}=='mysql_user' && ${setup_password}=='mysql_password' && ${setup_email}=='recipient_email' ]]; then
+            if [[ ${setup_user} == 'mysql_user' && ${setup_password} == 'mysql_password' && ${setup_email} == 'recipient_email' ]]; then
                 echo "Error: Please enter actual database connection details"
                 exit 1;
             fi
-            setup_script_mysql_password=${1}
+            randomPassword=$(openssl rand -base64 12 )
+            setup_script_mysql_password=${1:-$randomPassword}
             shift
 
             create_user;
