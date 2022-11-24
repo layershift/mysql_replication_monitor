@@ -1,7 +1,7 @@
 version: 1.6.2
-build: 20200122
+build: 20221124
 type: update
-name: 'Mysql_replication_monitoring'
+name: 'Mysql Replication Monitoring'
 id: 'Replication_monitoring'
 homepage: https://github.com/layershift/mysql_replication_monitor
 baseUrl: https://raw.githubusercontent.com/layershift/mysql_replication_monitor/main
@@ -16,46 +16,97 @@ description:
   short: Mysql replication monitoring and alert
 
 settings:
-    fields:
-        - type: string
-          caption: Root User
-          name: user
-        - type: string
-          caption: Root Password
-          name: passwd
-          
+  fields:
+    - type: string
+      caption: Database User
+      name: user
+      required: true
+      default: root
+    - type: string
+      caption: Database User Password
+      name: passwd
+      required: true
+    - type: string
+      caption: Alert recipient
+      name: alertRecipient
+      required: true
+      default:
+      tooltip: Multiple email addresses can be specified separated by ,
+
+onBeforeInit: |
+  return {
+    "result": 0,
+    "settings": {
+      "fields": [{
+        "type": "string",
+        "name": "user",
+        "caption": "Database User",
+        "hideLabel": false,
+        "required": true,
+        "default": "root"
+      }, {
+        "type": "string",
+        "name": "passwd",
+        "caption": "Database User Password",
+        "hideLabel": false,
+        "required": true,
+        "default": ""
+      }, {
+        "type": "string",
+        "name": "alertRecipient",
+        "caption": "Alert recipient",
+        "hideLabel": false,
+        "required": true,
+        "default": "${user.email}",
+        "tooltip": "Multiple email addresses can be specified separated by ,"
+      }]
+    }
+  };
+
+
+menu:
+  - caption: Update
+    action: install_script
+    confirmText: Are you sure you wish to update the monitoring script?
+    loadingText: Updating...
+
 onInstall:
-    install_script :
-    create_cron :
+  - install_script
+  - configure_script
+  - create_cron
 
 onUninstall:
-    remove_script :
-    remove_cron :
+  - remove_script
+  - remove_cron
     
 actions:
     install_script :
-    #This creates a copy of the monitoring script, and adds the "check_monit" mysql user
-        cmd[sqldb]:      
-            - /bin/mkdir /opt/ls_tools
-            - /bin/curl -fsSL '${baseUrl}/scripts/replication_monitor.sh' -o /opt/ls_tools/replication_monitor.sh;
-            - chmod +x /opt/ls_tools/replication_monitor.sh;
-            - /opt/ls_tools/replication_monitor.sh --create ${settings.user} ${settings.passwd}
-        user: root
+      #This creates a copy of the monitoring script, and adds the "check_monit" mysql user
+      cmd[sqldb]:      
+        - /bin/mkdir /opt/ls_tools
+        - /bin/curl -fsSL '${baseUrl}/scripts/replication_monitor.sh' -o /opt/ls_tools/replication_monitor.sh;
+        - chmod +x /opt/ls_tools/replication_monitor.sh;
+      user: root
+    
+    configure_script:
+      cmd[sqldb]:
+        - /opt/ls_tools/replication_monitor.sh --create '${settings.user}' '${settings.passwd}' '${settings.alertRecipient}'
+      user: root
   
     create_cron :
-        cmd[sqldb]:
-            - /bin/touch /etc/cron.d/replication_check
-            - /bin/echo "*/5 * * * * root /opt/ls_tools/replication_monitor.sh --check" > /etc/cron.d/replication_check
-        user: root
+      cmd[sqldb]:
+        - /bin/touch /etc/cron.d/replication_check
+        - /bin/echo "*/5 * * * * root /opt/ls_tools/replication_monitor.sh --check" > /etc/cron.d/replication_check
+      user: root
         
     remove_script :
-    	  cmd[sqldb]:
-    	    - /opt/ls_tools/replication_monitor.sh --uninstall ${settings.user} ${settings.passwd}
-    	    - /usr/bin/rm -f /opt/ls_tools/replication_monitor.sh
-        user: root        
+      cmd[sqldb]:
+        - /opt/ls_tools/replication_monitor.sh --uninstall '${settings.user}' '${settings.passwd}'
+        - /usr/bin/rm -f /opt/ls_tools/replication_monitor.sh
+      user: root        
         
     remove_cron :
-        cmd[sqldb]:
-           - /usr/bin/rm -f /etc/cron.d/replication_check
-        user: root
+      cmd[sqldb]:
+        - /usr/bin/rm -f /etc/cron.d/replication_check
+      user: root
         
