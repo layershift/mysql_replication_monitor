@@ -83,7 +83,7 @@ actions:
     install_script :
       #This creates a copy of the monitoring script, and adds the "check_monit" mysql user
       cmd[sqldb]:      
-        - /bin/mkdir /opt/ls_tools
+        - /bin/mkdir -p /opt/ls_tools
         - /bin/curl -fsSL '${baseUrl}/scripts/replication_monitor.sh' -o /opt/ls_tools/replication_monitor.sh;
         - chmod +x /opt/ls_tools/replication_monitor.sh;
       user: root
