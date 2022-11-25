@@ -1,19 +1,33 @@
-version: 1.6.2
-build: 20221124
+version: 7.3.2
+build: 20221125
 type: update
 name: 'Mysql Replication Monitoring'
 id: 'Replication_monitoring'
-homepage: https://github.com/layershift/mysql_replication_monitor
 baseUrl: https://raw.githubusercontent.com/layershift/mysql_replication_monitor/main
 logo: /images/mysql-sync.png?_r=${fn.random}
 
 targetNodes: 
-  nodeGroup: 'sqldb'
+  nodeType:
+    - mariadb
+    - mariadb-dockerized
+    - mariadb10
+    - mysql
+    - mysql5
+    - mysql8
+
 categories:
  - apps/others
 
 description:
-  short: Mysql replication monitoring and alert
+  short: MySQL/MariaDB replication monitoring and alert
+  text: |
+    This add-on is intended to be installed on the slave nodes in MySQL/MariaDB database replication setups.
+    It will monitor and alert in case of replication issues.
+
+globals:
+  message: ""
+  newline: "\n"
+
 
 settings:
   fields:
@@ -33,9 +47,10 @@ settings:
       default:
       tooltip: Multiple email addresses can be specified separated by ,
     - type: string
-      name: appPassword
+      name: appPass
       inputType: hidden
-      value: 
+      value:
+      required: true
 
 onBeforeInit: |
   return {
@@ -65,9 +80,10 @@ onBeforeInit: |
         "tooltip": "Multiple email addresses can be specified separated by ,"
       }, {
         "type": "string",
-        "name": "appPassword",
-        "inputType": hidden,
-        "default": com.hivext.api.utils.Random.getPswd(10)
+        "name": "appPass",
+        "caption": "Database Script Password",
+        "value": com.hivext.api.utils.Random.getPswd(10),
+        "inputType": "hidden"
       }]
     }
   };
@@ -78,6 +94,12 @@ menu:
     action: install_script
     confirmText: Are you sure you wish to update the monitoring script?
     loadingText: Updating...
+
+buttons:
+  - caption: Check Replication status
+    action: checkReplicationStatus
+    confirmText: Are you sure you wish to check the replication status?
+    loadingText: Checking...
 
 onInstall:
   - install_script
@@ -91,31 +113,47 @@ onUninstall:
 actions:
     install_script :
       #This creates a copy of the monitoring script, and adds the "check_monit" mysql user
-      cmd[sqldb]:      
+      cmd[${targetNodes.nodeGroup}]:      
         - /bin/mkdir -p /opt/ls_tools
         - /bin/curl -fsSL '${baseUrl}/scripts/replication_monitor.sh' -o /opt/ls_tools/replication_monitor.sh;
         - chmod +x /opt/ls_tools/replication_monitor.sh;
       user: root
     
     configure_script:
-      cmd[sqldb]:
-        - /opt/ls_tools/replication_monitor.sh --create '${settings.user}' '${settings.passwd}' '${settings.alertRecipient}' '${settings.appPassword}'
+      cmd[${targetNodes.nodeGroup}]:
+        - /opt/ls_tools/replication_monitor.sh --create '${settings.user}' '${settings.passwd}' '${settings.alertRecipient}' '${settings.appPass}'
       user: root
   
     create_cron :
-      cmd[sqldb]:
+      cmd[${targetNodes.nodeGroup}]:
         - /bin/touch /etc/cron.d/replication_check
         - /bin/echo "*/5 * * * * root /opt/ls_tools/replication_monitor.sh --check" > /etc/cron.d/replication_check
       user: root
         
     remove_script :
-      cmd[sqldb]:
+      cmd[${targetNodes.nodeGroup}]:
         - /opt/ls_tools/replication_monitor.sh --uninstall '${settings.user}' '${settings.passwd}'
         - /usr/bin/rm -f /opt/ls_tools/replication_monitor.sh
       user: root        
         
     remove_cron :
-      cmd[sqldb]:
+      cmd[${targetNodes.nodeGroup}]:
         - /usr/bin/rm -f /etc/cron.d/replication_check
       user: root
+
+    checkReplicationStatus:
+      - setGlobals:
+        - message: ""
+      - forEach(node:targetNodes):
+        - cmd [${@node.id}]:
+            - /opt/ls_tools/replication_monitor.sh --status --short
+          user: root
+        - setGlobals:
+            message: ${globals.message}${globals.newline}${response.out}
+        
+      - log:
+        - ${globals.message}
+      - message: ${globals.message}
+        script: |
+          return {result: 'info', message: message.replace(/\n/g, '  \n')}
         
