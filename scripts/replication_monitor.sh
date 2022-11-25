@@ -28,6 +28,7 @@ function create_user () {
     local password=${setup_script_mysql_password}
     local user=check_monit
 
+    echo "DROP USER IF EXISTS 'check_monit'@'localhost';" | mysql -u${setup_user} -p${setup_password}
     echo "CREATE USER '$user'@'localhost' IDENTIFIED BY '$password';" | mysql -u${setup_user} -p${setup_password}
     echo "GRANT SUPER , REPLICATION CLIENT ON * . * TO '$user'@'localhost' IDENTIFIED BY '$password' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0;"| mysql -u${setup_user} -p${setup_password}
     echo -e "[mysql]\nuser=$user\npassword=$password" > $credentials
@@ -104,7 +105,7 @@ function check_replication () {
 ###show slave status
 function show_status () {
     local mysql="/usr/bin/mysql --defaults-extra-file=$credentials"
-    echo -e "On $server.\n";
+    echo -e "\nOn $server.\n";
     if [ $1 -eq 0 ]; then
         echo "show slave status\G"|$mysql
     else
@@ -114,12 +115,11 @@ function show_status () {
 
 ###Uninstall
 function uninstall () {
-    /usr/bin/mysql -u${setup_user} -p${setup_password} -e "DROP USER 'check_monit'@'localhost';"
+    /usr/bin/mysql -u${setup_user} -p${setup_password} -e "DROP USER IF EXISTS 'check_monit'@'localhost';"
     /usr/bin/rm -f $credentials
     /usr/bin/rm -f $config_file
     /usr/bin/rm -f $status_file
     /usr/bin/rm -f $disable_check_file
-
 }
 
 while [[ $# -gt 0 ]]; do
@@ -128,15 +128,20 @@ while [[ $# -gt 0 ]]; do
     case $param in
         --help)
             cat <<EOF
-This is the help section of the script:
+This script is designed to monitor and email the configured "Alert recipient(s)" if the database replication fails
 
-For the first run, you need to create the sql user. To do so execute :
-    sh /opt/ls_tools/replication_monitor.sh --create 'mysql_user' 'mysql_password' 'recipient_email' 'script_mysql_password'
+Before the replication can be monitored we need to set up a monitoring database user using --create
+    sh $0 --create 'mysql_user' 'mysql_password' 'recipient_email' 'script_mysql_password'
 
-After the user was created, in order to run the checks, execute the script with the --check option
+    sh $0 --check                                       Check the slave status and email if any issues
+    sh $0 --debug --check                               Check the slave status and print any issues
 
-If you want to disable the check for a period, you can use --disable --time=n (where n is any time in hours you want it disabled)
-    sh /opt/ls_tools/replication_monitor.sh --disable --time=
+    sh $0 --disable --time=n                            Suppress the checks for n hours
+    sh $0 --status                                      Show slave status
+    sh $0 --status --short                              Show Running:|Seconds_Behind_Master from slave status
+
+    sh $0 --uninstall 'mysql_user' 'mysql_password'     Remove monitoring database user and related fils
+
 EOF
             exit 0;
         ;;
