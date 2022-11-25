@@ -101,11 +101,15 @@ function check_replication () {
     if [ "${io_is_running,,}" != "yes" ]; then echo -e "Mysql replication broken on $server.\n\nshow slave status\G\n$(echo "show slave status\G"|$mysql)" | if [ ${debug} -gt 0 ]; then less; else /bin/mail  -s "Mysql replication broken on $server" $email; fi; fi
 }
 
+###show slave status
 function show_status () {
     local mysql="/usr/bin/mysql --defaults-extra-file=$credentials"
-
-    echo -e "Mysql replication broken on $server.\n\nshow slave status\G\n$(echo "show slave status\G"|$mysql)"
-
+    echo -e "On $server.\n";
+    if [ $1 -eq 0 ]; then
+        echo "show slave status\G"|$mysql
+    else
+        echo "show slave status\G"|$mysql | egrep "Running:|Seconds_Behind_Master"
+    fi
 }
 
 ###Uninstall
@@ -159,16 +163,19 @@ EOF
             add_data;
         ;;
         --disable)
-            case $1 in
-                --time=*)
-                    time=${1#*=};
-                ;;
-                --time)
-                    time=${2}
-                    shift
-                ;;
-            esac
-            shift
+            time=0
+            if [ ! -z $1 ]; then
+                case $1 in
+                    --time=*)
+                        time=${1#*=};
+                    ;;
+                    --time)
+                        time=${2}
+                        shift
+                    ;;
+                esac
+                shift
+            fi
 
             check_disable
         ;;
@@ -178,7 +185,17 @@ EOF
             check_replication;
         ;;
         --status)
-            show_status;
+            short=0
+            if [ ! -z $1 ]; then
+                 case $1 in
+                    --short)
+                        short=1
+                    ;;
+                 esac
+                 shift
+            fi
+
+            show_status $short;
         ;;
         --uninstall)
             setup_user=${1}
