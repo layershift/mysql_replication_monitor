@@ -111,6 +111,7 @@ function show_status () {
     else
         echo "show slave status\G"|$mysql | egrep "Running:|Seconds_Behind_Master"
     fi
+    exit 0;
 }
 
 ###Uninstall
