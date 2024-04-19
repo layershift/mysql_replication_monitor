@@ -137,7 +137,7 @@ function check_replication () {
     local sql_is_running=`echo "$mysql_info" | grep "Slave_SQL_Running" | awk '{ print $2 }'`
     local seconds_behind=`echo "$mysql_info" | grep "Seconds_Behind_Master" | awk '{ print $2 }'`
 
-    if [ "${io_is_running,,}" != "yes" && "${sql_is_running,,}" != "yes" && "$seconds_behind" -gt 1800 ]; then echo -e "Mysql replication broken on $server.\n\nshow slave status\G\n$(echo "show slave status\G"|$mysql)" | if [ ${debug} -gt 0 ]; then less; else /bin/mail  -s "Mysql replication broken on $server" $email; fi; fi
+    if [ "${io_is_running,,}" != "yes" || "${sql_is_running,,}" != "yes" || "$seconds_behind" -gt 1800 ]; then echo -e "Mysql replication broken on $server.\n\nshow slave status\G\n$(echo "show slave status\G"|$mysql)" | if [ ${debug} -gt 0 ]; then less; else /bin/mail  -s "Mysql replication broken on $server" $email; fi; fi
 }
 
 ### show slave status
