@@ -18,20 +18,20 @@ if [ ! -f $credentials ] ; then touch $credentials; fi
 function check_status_file () {
     if [ ! -f $status_file ] ; then 
         touch $status_file;
-        echo -e "mysql_status= " >> $status_file
-        echo -e "disabled_status= " >> $status_file
-	echo -e "disable_timestamp= " >> $status_file
+        echo -e "mysql_status=" >> $status_file
+        echo -e "disabled_status=" >> $status_file
+	echo -e "disable_timestamp=" >> $status_file
     else
         grep -v "#" $status_file | grep -q "mysql_status="
         if [ $? -ne 0 ]; then
-            echo -e "mysql_status= " >> $status_file
+            echo -e "mysql_status=" >> $status_file
         fi
         grep -v "#" $status_file | grep -q "disabled_status="
         if [ $? -ne 0 ]; then
-            echo -e "disabled_status= " >> $status_file
+            echo -e "disabled_status=" >> $status_file
 	grep -v "#" $status_file | grep -q "disable_timestamp="
         if [ $? -ne 0 ]; then
-            echo -e "disable_timestamp= " >> $status_file
+            echo -e "disable_timestamp=" >> $status_file
        	fi
     fi
 }
@@ -98,9 +98,12 @@ function check_disable () {
     check_status_file
     ###set disable_status to true/false based on previous values
     if [ "$disable_time" -gt "$file_age" ]; then 
-	sed -i 's/disabled_status=.*/disabled_status= true/g' $status_file
+	sed -i 's/disabled_status=.*/disabled_status=true/g' $status_file
 	sed -i "s/disable_timestamp=.*/disable_timestamp=$(date)/" $status_file
-    else sed -i 's/disabled_status=.*/disabled_status= false/g' $status_file && echo "0" > $disable_check_file  ; fi
+    else 
+    	sed -i 's/disabled_status=.*/disabled_status=false/g' $status_file
+     	echo "0" > $disable_check_file
+    fi
 }
 
 ### Check if mysql connection works with monitoring user
@@ -127,8 +130,8 @@ function check_replication () {
     local email=$(grep -v "^#" $config_file | grep "email="  | awk -F "=" '{ $1=""; print $0 }' | xargs)
 
     ###Check if monitoring is disabled
-    local disabled_status=$(grep -v "^#" $status_file | grep "disabled_status=" $status_file | awk -F "=" '{ $1=""; print $0 }' | xargs)
-    local disable_timestamp=$(grep -v "^#" $status_file | grep "disable_timestamp=" | awk -F "=" '{ $1=""; print $0 }' | xargs)
+    local disabled_status=$(grep -v "^#" $status_file | grep "disabled_status=" | awk -F "=" '{print $2}')
+    local disable_timestamp=$(grep -v "^#" $status_file | grep "disable_timestamp=" | awk -F "=" '{print $2}')
 
     if [ "${disabled_status,,}" != "false" ]; then exit 0 ; fi
 
