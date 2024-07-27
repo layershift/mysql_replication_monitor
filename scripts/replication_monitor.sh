@@ -16,7 +16,7 @@ if [ ! -f $credentials ] ; then touch $credentials; fi
 
 ### Check status_file
 function check_status_file () {
-    if [ ! -f $status_file ] ; then 
+    if [ ! -f $status_file ] ; then
         touch $status_file;
         echo -e "mysql_status=" >> $status_file
         echo -e "disabled_status=" >> $status_file
@@ -39,8 +39,8 @@ function check_status_file () {
 
 ### Populate config file with mysql_status and disabled_status
 function add_data () {
-    if [ ! -f $config_file ] ; then 
-        touch $config_file; 
+    if [ ! -f $config_file ] ; then
+        touch $config_file;
         echo -e "email= ${setup_email}" >> $config_file
     else
         sed "s#email=.*#email=${setup_email}#" -i $config_file
@@ -86,9 +86,9 @@ function check_disable () {
     ###If time is configured, add it to the config file
     disable_time=`cat $disable_check_file`
     if [ ! -z "$time" ]; then
-        if [ "$disable_time" -eq "0" ]; then 
-            echo "$time" > $disable_check_file ; 
-        fi 
+        if [ "$disable_time" -eq "0" ]; then
+            echo "$time" > $disable_check_file ;
+        fi
     fi
     disable_time=`cat $disable_check_file`
     if [ ${debug} -gt 0 ]; then
@@ -98,10 +98,9 @@ function check_disable () {
     ### Check $status_file exists
     check_status_file
     ###set disable_status to true/false based on previous values
-    if [ "$disable_time" -gt "$file_age" ]; then 
+    if [ "$disable_time" -gt "$file_age" ]; then
 	sed -i 's/disabled_status=.*/disabled_status=true/g' $status_file
-        sed -i "s/disable_timestamp=.*/disable_timestamp=$(date)/" $status_file
-    else 
+    else
     	sed -i 's/disabled_status=.*/disabled_status=false/g' $status_file
      	echo "0" > $disable_check_file
     fi
@@ -109,13 +108,13 @@ function check_disable () {
 
 ### Check if mysql connection works with monitoring user
 function check_mysql () {
-    
+
     /usr/bin/mysqladmin --defaults-extra-file=$credentials ping 2>&1 >/dev/null
 
     ### Check $status_file exists
     check_status_file
 
-    ###If can't connect to mysql using the credentials in the /opt/ls_tools/.sqlpwd file email support 
+    ###If can't connect to mysql using the credentials in the /opt/ls_tools/.sqlpwd file email support
     if [ $? -eq 0 ]; then sed -i 's/mysql_status=.*/mysql_status=true/g' $status_file ; else sed -i 's/mysql_status=.*/mysql_status=false/g' $status_file && echo "0" > $disable_check_file  ; fi
 }
 
@@ -139,7 +138,7 @@ function check_replication () {
     ###Check if mysql connection works
     local mysql_status=$(grep -v "^#" $status_file | grep "mysql_status=" | awk -F "=" '{print $2}')
 
-    if [ "${mysql_status,,}" != "true" ]; then echo -e "Mysql connection broken on $server.\nmysqladmin ping failed" | if [ ${debug} -gt 0 ]; then less; else /bin/mail  -s "Mysql connection broken on $server" $email; exit 0; fi; fi   
+    if [ "${mysql_status,,}" != "true" ]; then echo -e "Mysql connection broken on $server.\nmysqladmin ping failed" | if [ ${debug} -gt 0 ]; then less; else /bin/mail  -s "Mysql connection broken on $server" $email; exit 0; fi; fi
 
     ###Get mysql info
     local mysql_info=`echo "show slave status\G" | $mysql | sed -e 's/^[[:space:]]*//g' 2>&1`
@@ -148,7 +147,7 @@ function check_replication () {
     local sql_is_running=`echo "$mysql_info" | grep "Slave_SQL_Running:" | awk '{ print $2 }'`
     local seconds_behind=`echo "$mysql_info" | grep "Seconds_Behind_Master:" | awk '{ print $2 }'`
 
-    if [[ "${io_is_running,,}" != "yes" || "${sql_is_running,,}" != "yes" || "$seconds_behind" -gt 1800 ]]; then echo -e "Mysql replication broken on $server.\n\nChecks last disabled: $disable_timestamp\n\nshow slave status\G\n$(echo "show slave status\G"|$mysql)" | if [ ${debug} -gt 0 ]; then less; else /bin/mail  -s "Mysql replication broken on $server" $email; fi; fi
+    if [[ "${io_is_running,,}" != "yes" || "${sql_is_running,,}" != "yes" || "$seconds_behind" -gt 1800 ]]; then echo -e "Mysql replication broken on $server.\n\nChecks last disabled: "$disable_timestamp"\n\nshow slave status\G\n$(echo "show slave status\G"|$mysql)" | if [ ${debug} -gt 0 ]; then less; else /bin/mail  -s "Mysql replication broken on $server" $email; fi; fi
 }
 
 ### show slave status
@@ -235,6 +234,7 @@ EOF
                 shift
             fi
             check_disable
+            sed -i "s/disable_timestamp=.*/disable_timestamp=$(date)/" $status_file
         ;;
         --check)
             check_disable;
