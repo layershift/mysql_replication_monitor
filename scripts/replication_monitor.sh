@@ -29,6 +29,7 @@ function check_status_file () {
         grep -v "#" $status_file | grep -q "disabled_status="
         if [ $? -ne 0 ]; then
             echo -e "disabled_status=" >> $status_file
+	fi
 	grep -v "#" $status_file | grep -q "disable_timestamp="
         if [ $? -ne 0 ]; then
             echo -e "disable_timestamp=" >> $status_file
@@ -99,7 +100,7 @@ function check_disable () {
     ###set disable_status to true/false based on previous values
     if [ "$disable_time" -gt "$file_age" ]; then 
 	sed -i 's/disabled_status=.*/disabled_status=true/g' $status_file
-	sed -i "s/disable_timestamp=.*/disable_timestamp=$(date)/" $status_file
+        sed -i "s/disable_timestamp=.*/disable_timestamp=$(date)/" $status_file
     else 
     	sed -i 's/disabled_status=.*/disabled_status=false/g' $status_file
      	echo "0" > $disable_check_file
@@ -115,7 +116,7 @@ function check_mysql () {
     check_status_file
 
     ###If can't connect to mysql using the credentials in the /opt/ls_tools/.sqlpwd file email support 
-    if [ $? -eq 0 ]; then sed -i 's/mysql_status=.*/mysql_status= true/g' $status_file ; else sed -i 's/mysql_status=.*/mysql_status= false/g' $status_file && echo "0" > $disable_check_file  ; fi
+    if [ $? -eq 0 ]; then sed -i 's/mysql_status=.*/mysql_status=true/g' $status_file ; else sed -i 's/mysql_status=.*/mysql_status=false/g' $status_file && echo "0" > $disable_check_file  ; fi
 }
 
 ### Check replication
@@ -136,7 +137,7 @@ function check_replication () {
     if [ "${disabled_status,,}" != "false" ]; then exit 0 ; fi
 
     ###Check if mysql connection works
-    local mysql_status=$(grep -v "^#" $status_file | grep "mysql_status=" | awk -F "=" '{ $1=""; print $0 }' | xargs)
+    local mysql_status=$(grep -v "^#" $status_file | grep "mysql_status=" | awk -F "=" '{print $2}')
 
     if [ "${mysql_status,,}" != "true" ]; then echo -e "Mysql connection broken on $server.\nmysqladmin ping failed" | if [ ${debug} -gt 0 ]; then less; else /bin/mail  -s "Mysql connection broken on $server" $email; exit 0; fi; fi   
 
@@ -233,7 +234,6 @@ EOF
                 esac
                 shift
             fi
-
             check_disable
         ;;
         --check)
